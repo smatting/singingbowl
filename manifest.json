@@ -1,0 +1,15 @@
+{
+  "name": "Mediation Timer",
+  "manifest_version": 2,
+  "description": "Rings a mediation singing bowl after a specified time.",
+  "version": "1.0",
+  "app": {
+    "launch": {
+      "local_path": "main.html"
+    }
+  },
+  "icons": {
+    "16": "bowl_16.png",
+    "128": "bowl_128.png"
+  }
+}
