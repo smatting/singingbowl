@@ -1,33 +1,31 @@
 function Bell() {
     var bellsound = new Audio("singingbowl.wav");
 
-    this.ringing = false;
+    var ringing = false;
 
-    this.mute = function(that) {
+    this.mute = function() {
         if(this.ringing) {
             bellsound.pause();
             this.ringing = false;
-            if(this.onRingEnd)
-                this.onRingEnd();
+            if(this.onend)
+                this.onend();
         }
     }
 
     this.ring = function() {
         this.ringing = true;
         bellsound.currentTime = 0;
-        bellsound.play();
+        console.log("ring!");
+        //bellsound.play();
 
-        if(this.onRing)
-            this.onRing();
+        if(this.onring)
+            this.onring();
 
-        var that = this;
-        if(this.timeout) {
+        if(this.timeout) 
             window.clearTimeout(this.timeout);
-            delete this.timeout;
-        }
-        this.timeout = window.setTimeout(function() {that.mute(that)}, 14*1000);
+        var that = this;
+        this.timeout = window.setTimeout(function() {that.mute()}, 14*1000);
     }
-
 }
 
 var bell = new Bell();
@@ -43,83 +41,67 @@ String.prototype.toMMSS = function () {
     return time;
 }
 
-function PhasedTimer() {
-    this.phaseTimes = [];
+function PhasedTimer(times) {
+    this.times = times;
+    this.running = false;
+    this.lastPhase = 0;
 
-    this.onTick = function() {};
-    this.onTransition = function() {};
-    this.onEnd = function() {};
-
-    this.paused = false;
-
-    this.currentTime = function() {
+    function getTime() {
         return (new Date()).getTime();
     }
 
-    this.reset = function(pt) {
-        window.clearInterval(this.timerHandle);
-        this.running = false;
-        this.paused = false;
-        this.phaseTimes = pt;
-        this.lastPhaseIndex = 0;
-    }
-
     this.pause = function() {
-        this.paused = true;
         window.clearInterval(this.timerHandle);
         this.running = false;
     }
 
     this.run = function() {
         window.clearInterval(this.timerHandle);
-        this.lastTick = this.currentTime();
         var that = this;
         this.timerHandle = window.setInterval(function() { that.tick() }, 100);
-        this.paused = false;
-        this.running = true;
-        this.onTransition(this);
-        this.tick();
-    }
 
-    function phaseIndexFor(pt) {
-        for(i=0;i<pt.length;++i) {
-            if (pt[i] != 0)
-                break;
-        }
-        return i;
+        this.lastTick = getTime();
+        this.running = true;
+        //this.ontransition(0);
     }
 
     this.tick = function() {
-        var now = this.currentTime();
+        var now = getTime();
         var delta = now - this.lastTick;
 
-       // phaseIndexFor(this.phaseTimes);
-        while(this.lastPhaseIndex < this.phaseTimes.length && delta > 0) {
-            this.phaseTimes[this.lastPhaseIndex] -= delta;
-            if(this.phaseTimes[this.lastPhaseIndex] < 0) {
-                delta = - this.phaseTimes[this.lastPhaseIndex];
-                this.phaseTimes[this.lastPhaseIndex] = 0;
-            } else {
-                delta = 0;
+        var k = this.lastPhase;
+        while(k < this.times.length && delta > 0) {
+
+            var ttk_before = this.times[k];
+            this.times[k] = Math.max(0, this.times[k] - delta);
+            delta = delta - (ttk_before - this.times[k]);
+
+            if(this.times[k] == 0) {
+                k += 1;
+                if(this.ontransition)
+                    this.ontransition(k);
             }
-            var k = phaseIndexFor(this.phaseTimes);
-            if(k != this.lastPhaseIndex) {
-                this.onTransition(this.phaseTimes, phaseIndexFor(this.phaseTimes));
-            }
-            this.lastPhaseIndex = k;
         }
 
+        if(this.ontick)
+            this.ontick();
 
-        this.onTick(this.phaseTimes, this.lastPhaseIndex);
-
-        if(this.lastPhaseIndex >= this.phaseTimes.length) {
+        if(k >= this.times.length) {
             this.pause();
-            this.onEnd();
+            this.lastPhase = 0;
+            if(this.onend)
+                this.onend();
+            return;
         }
+
+        this.lastPhase = k;
         this.lastTick = now;
     }
 }
 
+function AAA() {
+
+}
 
 function closeEdit(spanElt) {
     var x = parseInt(spanElt.children("input").attr("value"));
@@ -131,28 +113,24 @@ function closeEdit(spanElt) {
 }
 
 function highlightPhase(k) {
-    var phases = [$("#phase-0"), $("#phase-1"),  $("#phase-2"),  $("#phase-3")];
     if (k < 4) {
-        for(var i=0;i < phases.length; ++i)
-            phases[i].addClass("inactive");
-        phases[k].removeClass("inactive");
+        $("h1").addClass("inactive");
+        $("h1").eq(k).removeClass("inactive");
     } else {
-        for(var i=0;i < phases.length; ++i)
-            phases[i].removeClass("inactive");
+        $("h1").removeClass("inactive");
     }
 }
-function updateProgress(pt, pi) {
-    highlightPhase(pi);
-
-    $("#time-left-1").html((Math.floor(pt[0] / 1000)).toString().toMMSS());
-    $("#time-left-2").html((Math.floor(pt[2] / 1000)).toString().toMMSS());
+function updateProgress() {
+    $("#time-left-1").html((Math.floor(this.times[0] / 1000)).toString().toMMSS());
+    $("#time-left-2").html((Math.floor(this.times[2] / 1000)).toString().toMMSS());
 }
 
 function resetTimer(timer) {
     var minutesPreperation = parseInt($("#label-1").html());
     var minutesMeditation = parseInt($("#label-2").html());
     //timer.reset([minutesPreperation*60*1000,2*1000,minutesMeditation*60*1000,2*1000]);
-    timer.reset([500,500,500,500]);
+    //timer.reset([2*1000,2*1000,2*1000,2*1000]);
+    //timer.reset([500,500,500,500]);
 }
 
 
@@ -194,11 +172,11 @@ $(document).ready(function () {
         bell.mute();
     });
     
-    bell.onRing = function() {
+    bell.onring = function() {
         $("#stop-sound").css("visibility", "visible");
     }
 
-    bell.onRingEnd = function() {
+    bell.onend = function() {
         $("#stop-sound").css("visibility", "hidden");
     }
 
@@ -225,21 +203,23 @@ $(document).ready(function () {
     closeEdit($("#span-2"));
 
 
-    var timer = new PhasedTimer;
+    var timer = new PhasedTimer([1000,1000,1000,1000]);
+    var fresh = true;
 
-    timer.onTick = updateProgress;
+    timer.ontick = updateProgress;
 
-    timer.onTransition = function(pt, pi) {
-        if(pi == 1 || pi == 3) {
+    timer.ontransition = function(k) {
+        highlightPhase(k);
+        if(k == 1 || k == 3)
             bell.ring();
-        }
     }
 
-    timer.onEnd = function() {
+    timer.onend = function() {
         $("#right-column").removeClass("running");
         $("#timer-button").html("Start Timer");
-        resetTimer(timer);
+        timer.times = [1000,1000,1000,1000];
         highlightPhase(4);
+        fresh = true;
     }
 
     $("#timer-button").click(function() {
@@ -247,13 +227,11 @@ $(document).ready(function () {
             timer.pause();
             $("#timer-button").html("Resume Timer");
         } else {
-            if(timer.paused) {
-            } else {
-                resetTimer(timer);
-            }
-            $("#timer-button").html("Pause Timer");
-            $("#right-column").addClass("running");
+            fresh = false;
+            timer.ontick();
             timer.run();
+            $("#right-column").addClass("running");
+            $("#timer-button").html("Pause Timer");
         }
     });
 
