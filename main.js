@@ -99,10 +99,6 @@ function PhasedTimer(times) {
     }
 }
 
-function AAA() {
-
-}
-
 function closeEdit(spanElt) {
     var x = parseInt(spanElt.children("input").attr("value"));
     if (!isNaN(x))
