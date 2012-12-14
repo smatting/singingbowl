@@ -14,33 +14,41 @@
                     <img id="bowl" src="bowl_small.png" />
                     <div id="bowl-footer">
                         <a id="stop-sound" href="#">stop sound</a>
-                        <span id="bowl-hint">
-                            click bowl to test sound
-                        </span>
+                        <div id="bowl-hint">click bowl to test sound</div>
                     </div>
                 </div>
             </div>
             <div id="right-column">
-                <h1>Preparation</h1>
-                <div id="span-1" class="config">
-                    <span>Silence for</span>
-                    <label id="label-1" for="edit-1">1</label>
-                    <input id="edit-1" class="edit" type="text" size="3" maxlength="3" />
-                    <span class="units">minutes.</span>
-                </div>
-                <span class="indicator" id="time-left-1"></span>
-                <h1>Singing bowl rings</h1>
-                <h1>Meditation</h1>
-                <div id="span-2" class="config">
-                    <span>Silence for</span>
-                    <label id="label-2" for="edit-2">30</label>
-                    <input id="edit-2" class="edit" type="text" size="3" maxlength="3" />
-                    <span class="units">minutes.</span>
-                </div>
-                <span class="indicator" id="time-left-2"></span>
-                <h1>Singing bowl rings</h1>
+                <ol id="phases" class="config-mode">
+                    <li>
+                        <h1>Preparation</h1>
+                        <div class="config">
+                            <span id="config-preparation"></span>
+                        </div>
+                        <div class="indicator">
+                            <span id="indicator-preparation"></span>
+                        </div>
+                    </li>
+
+                    <li>
+                        <h1>Singing bowl rings</h1>
+                    </li>
+
+                    <li>
+                        <h1>Meditation</h1>
+                        <div class="config">
+                            <span id="config-meditation"></span>
+                        </div>
+                        <div class="indicator">
+                            <span id="indicator-meditation"></span>
+                        </div>
+                    </li>
+
+                    <li>
+                        <h1>Singing bowl rings</h1>
+                    </li>
+                </ol>
                 <button id="timer-button" class="button">Start Timer</button>
             </div>
-        </div>
-    </body>
-</html>
+        </body>
+    </html>

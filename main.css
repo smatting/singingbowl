@@ -20,14 +20,19 @@ body {
     font-size: 18px;
 }
 
-a {
-    color: #f3b985;
-    text-decoration: none;
+
+#left-column {
+    float: left;
+    width: 50%;
 }
 
-a:hover {
-    color: #fff;
+#right-column {
+    float: right;
+    width: 50%;
 }
+
+
+
 
 #bowl {
     cursor: pointer;
@@ -41,9 +46,16 @@ a:hover {
     margin-right: 1em;
 }
 
+#bowl-wrap a {
+    color: #f3b985;
+    text-decoration: none;
+}
+
+#bowl-wrap a:hover {
+    color: #fff;
+}
 
 #bowl-hint {
-    display: block;
     font-size: 0.8em;
     text-align: center;
     visibility: hidden;
@@ -60,6 +72,29 @@ a:hover {
     text-align: center;
     visibility: hidden;
 }
+
+
+
+.config-mode .config {
+    display: block;
+}
+
+.config-mode .indicator {
+    display: none;
+}
+
+.indicator-mode .config {
+    display: none;
+}
+
+.indicator-mode .indicator {
+    display: block;
+}
+
+
+
+
+
 
 h1:before {
     counter-increment: phase;
@@ -109,42 +144,7 @@ h1 {
     color: white;
 }
 
-#left-column {
-    float: left;
-    width: 50%;
-}
 
-#right-column {
-    float: right;
-    width: 50%;
-}
-
-
-#right-column div .edit {
-    display: none;
-}
-
-#right-column div.editing input {
-    display: inline;
-}
-
-#right-column div.editing label {
-    display: none;
-}
-
-
-
-
-#right-column .indicator {
-    display: none;
-}
-
-#right-column.running .config {
-    display: none;
-}
-#right-column.running .indicator {
-    display: block;
-}
 
 
 .inactive {
