@@ -232,5 +232,4 @@ $(document).ready(function () {
     });
 
     resetTimer(timer);
-
 });
