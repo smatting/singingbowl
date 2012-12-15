@@ -1,54 +1,39 @@
 <!doctype html>
-
 <html>
     <head>
-        <script src="jquery-1.8.3.min.js"></script>
+        <script src="libs/jquery-1.8.3.min.js"></script>
         <script src="main.js"></script>
-        <link rel="stylesheet" type="text/css" href="css3-patterned-buttons.css" />
+        <link rel="stylesheet" type="text/css" href="libs/css3-patterned-buttons.css" />
         <link rel="stylesheet" type="text/css" href="main.css" />
     </head>
     <body>
         <div id="app">
             <div id="left-column">
-                <div id="bowl-wrap">
-                    <img id="bowl" src="bowl_small.png" />
-                    <div id="bowl-footer">
-                        <a id="stop-sound" href="#">stop sound</a>
-                        <div id="bowl-hint">click bowl to test sound</div>
-                    </div>
+                <div id="bowl">
+                    <button id="stop-sound">Stop Sound</button>
                 </div>
             </div>
             <div id="right-column">
-                <ol id="phases" class="config-mode">
-                    <li>
+                <div id="phases" class="config-mode">
+                    <div class="phase">
                         <h1>Preparation</h1>
-                        <div class="config">
-                            <span id="config-preparation"></span>
-                        </div>
-                        <div class="indicator">
-                            <span id="indicator-preparation"></span>
-                        </div>
-                    </li>
-
-                    <li>
+                        <span class="config" id="config-preparation"></span>
+                        <span class="indicator" id="indicator-preparation"></span>
+                    </div>
+                    <div class="phase">
                         <h1>Singing bowl rings</h1>
-                    </li>
-
-                    <li>
+                    </div>
+                    <div class="phase">
                         <h1>Meditation</h1>
-                        <div class="config">
-                            <span id="config-meditation"></span>
-                        </div>
-                        <div class="indicator">
-                            <span id="indicator-meditation"></span>
-                        </div>
-                    </li>
-
-                    <li>
+                        <span class="config" id="config-meditation"></span>
+                        <span class="indicator" id="indicator-meditation"></span>
+                    </div>
+                    <div class="phase">
                         <h1>Singing bowl rings</h1>
-                    </li>
-                </ol>
+                    </div>
+                </div>
                 <button id="timer-button" class="button">Start Timer</button>
             </div>
-        </body>
-    </html>
+        </div>
+    </body>
+</html>

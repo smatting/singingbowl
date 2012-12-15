@@ -1,5 +1,5 @@
 function Bell() {
-    var bellsound = new Audio("singingbowl.wav");
+    var bellsound = new Audio("media/singingbowl.wav");
 
     var ringing = false;
 
@@ -12,11 +12,11 @@ function Bell() {
         }
     }
 
+
     this.ring = function() {
         this.ringing = true;
         bellsound.currentTime = 0;
-        console.log("ring!");
-        //bellsound.play();
+        bellsound.play();
 
         if(this.onring)
             this.onring();
@@ -27,7 +27,6 @@ function Bell() {
         this.timeout = window.setTimeout(function() {that.mute()}, 14*1000);
     }
 }
-
 
 String.prototype.toMMSS = function () {
     var sec_numb    = parseInt(this);
@@ -41,16 +40,22 @@ String.prototype.toMMSS = function () {
 }
 
 function PhasedTimer(times) {
-    this.times = times;
-    this.running = false;
-    this.lastPhase = 0;
+    this.isReset = false;
+
+    this.reset = function(times) {
+        this.times = times;
+        this.running = false;
+        this.lastPhase = 0;
+        this.isReset = true;
+    }
 
     function getTime() {
         return (new Date()).getTime();
     }
 
     this.pause = function() {
-        window.clearInterval(this.timerHandle);
+        if(this.timerHandle)
+            window.clearInterval(this.timerHandle);
         this.running = false;
     }
 
@@ -60,8 +65,13 @@ function PhasedTimer(times) {
         this.timerHandle = window.setInterval(function() { that.tick() }, 100);
 
         this.lastTick = getTime();
+        
+        if(this.isReset) {
+            /* run is called first time after reset */
+            this.ontransition(0);
+        }
         this.running = true;
-        this.ontransition(0);
+        this.isReset = false;
     }
 
     this.tick = function() {
@@ -99,32 +109,50 @@ function PhasedTimer(times) {
 }
 
 function MinutesModel(id, minutes) {
-    if(minutes) {
-        this.minutes = minutes;
-    }
+    this.id = id;
+    this.minutes = minutes;
 
     this.save = function(val) {
-        this.minutes = parseInt(val);
-        if(this.onChange)
-            this.onChange();
+        var m = parseInt(val);
+        if(!isNaN(m) && m >= 0) {
+            this.minutes = m;
+
+            var saveObj = {};
+            saveObj[this.id] = this.minutes;
+            chrome.storage.local.set(saveObj);
+            if(this.onchange)
+                this.onchange();
+        }
+    }
+
+    var that = this;
+
+    this.load = function() {
+        chrome.storage.local.get(this.id, function(obs) {
+            if(obs[that.id]) {
+                that.minutes = obs[that.id];
+                if(that.onchange)
+                    that.onchange();
+            }
+        });
     }
 }
 
 function MinutesView(model, el) {
-
     this.update = function() {
         var mins = this.model.minutes;
         $(this.label).html(mins);
         $(this.input).attr("value", mins);
         if(mins > 1) {
-            $(this.units).html("minutes.");
+            $(this.units).html("minutes");
         } else {
-            $(this.units).html("minute.");
+            $(this.units).html("minute");
         }
     }
 
+    var that = this;
     this.commit = function() {
-        this.model.save($(this.input).attr("value"));
+        that.model.save($(this.input).attr("value"));
     }
 
     this.model = model;
@@ -142,146 +170,145 @@ function MinutesView(model, el) {
     this.units = $("<span>");
 
     var that = this;
+
     $(this.label).click(function() {
-            $(that.label).hide();
-            $(that.input).show();
-            $(that.input).focus();
-            return true;
-            });
+        $(that.label).hide();
+        $(that.input).show();
+        $(that.input).attr("value", $(that.label).html());
+        $(that.input).focus();
+        return true;
+    });
 
     $(this.input).blur(function() {
-            that.commit();
-            $(that.label).show();
-            $(that.input).hide();
-            });
+        that.commit();
+        $(that.label).show();
+        $(that.input).hide();
+    });
 
     $(this.input).focus(function() {
-            $(this).select();
-            });
+        $(this).select();
+    });
 
     $(this.input).keypress(function(e) {
-            if (e.keyCode == 13)
+        if (e.keyCode == 13)
             $(this).blur();
-            });
+    });
 
-
-    this.model.onChange = function() {
+    this.model.onchange = function() {
         that.update();
     }
 
-    $(this.el).append(this.silenceText);
+    $(this.el).append("Silence for ");
     $(this.el).append(this.label);
     $(this.el).append(this.input);
+    $(this.el).append(" ");
     $(this.el).append(this.units);
+    $(this.el).append(".");
+
+    this.update();
 }
 
-
-
-
-function AppView() {
+function MeditationApp() {
     var bell = new Bell;
-    var timer = new PhasedTimer([1000,1000,1000,1000]);
+    var timer = new PhasedTimer;
 
     var preparationModel = new MinutesModel("preparation-minutes", 1);
     var preparationView = new MinutesView(preparationModel, $("#config-preparation"));
-    preparationView.update();
+    preparationModel.load();
 
     var meditationModel = new MinutesModel("meditation-minutes", 30);
     var meditationView = new MinutesView(meditationModel, $("#config-meditation"));
-    meditationView.update();
+    meditationModel.load();
 
-
-    function resetTimer() {
-        timer.reset([2*1000,2*1000,2*1000,2*1000]);
+    this.setMode = function(mode) {
+        this.mode = mode;
+        switch(this.mode) {
+            case "indicator":
+                $("#phases").removeClass("config-mode");
+                $("#phases").addClass("indicator-mode");
+                break;
+            case "config":
+                $("#phases").removeClass("indicator-mode");
+                $("#phases").addClass("config-mode");
+                break;
+        };
     }
+    this.setMode("config");
 
-    function highlight(k) {
+    this.highlight = function(k) {
         if (0 <= k && k <= 3) {
-            $("#phases li").addClass("inactive");
-            $("#phases li").eq(k).removeClass("inactive");
+            $("#phases .phase").addClass("inactive");
+            $("#phases .phase").eq(k).removeClass("inactive");
         } else {
-            $("#phases li").removeClass("incactive");
+            $("#phases .phase").removeClass("inactive");
         }
     }
 
-    var fresh = true;
+    this.updateIndicators = function() {
+        var preparationSecsLeft = Math.floor(timer.times[0] / 1000);
+        $("#indicator-preparation").html(preparationSecsLeft.toString().toMMSS());
+        var meditationSecsLeft = Math.floor(timer.times[2] / 1000);
+        $("#indicator-meditation").html(meditationSecsLeft.toString().toMMSS());
+    }
 
-    timer.ontick = updateProgress;
+    var that = this;
+
+    timer.ontick = function() {
+        that.updateIndicators();
+    }
 
     timer.ontransition = function(k) {
-        highlight(k);
+        that.highlight(k);
         if(k == 1 || k == 3)
             bell.ring();
     }
 
     timer.onend = function() {
-        $("#right-column").removeClass("running");
+        that.highlight(-1);
         $("#timer-button").html("Start Timer");
-        timer.times = [1000,1000,1000,1000];
-        highlight(-1);
-        fresh = true;
+        that.setMode("config");
     }
 
     $("#timer-button").click(function() {
-            if(timer.running) {
-            timer.pause();
-            $("#timer-button").html("Resume Timer");
-            } else {
-            fresh = false;
-            timer.ontick();
-            timer.run();
-            $("#right-column").addClass("running");
+        if(that.mode == "config") {
+            /* button is clicked to start timer */
+            timer.reset([preparationModel.minutes*60*1000,2*1000,meditationModel.minutes*60*1000,2*1000]);
+            that.updateIndicators();
+            that.setMode("indicator");
             $("#timer-button").html("Pause Timer");
+            timer.run();
+        } else {
+            if(timer.running) {
+                /* button is clicked to pause timer */
+                $("#timer-button").html("Resume Timer");
+                timer.pause();
+            } else {
+                /* button is clicked to resume timer */
+                $("#timer-button").html("Pause Timer");
+                timer.run();
             }
-            });
-}
+        }
+    });
 
+    $("#bowl").click(function() {
+        bell.ring();
+    });
 
+    $("#stop-sound").click(function() {
+        bell.mute();
+        return false;
+    });
 
-function updateProgress() {
-    $("#indicator-preparation").html((Math.floor(this.times[0] / 1000)).toString().toMMSS());
-    $("#indicator-meditation").html((Math.floor(this.times[2] / 1000)).toString().toMMSS());
+    bell.onring = function() {
+        $("#stop-sound").css("visibility", "visible");
+    }
+
+    bell.onend = function() {
+        console.log("bell end");
+        $("#stop-sound").css("visibility", "hidden");
+    }
 }
 
 $(document).ready(function () {
-        var app = new AppView();
-
-        //    
-        //
-        //
-        //
-        //    $("#bowl-hint").click(function() {
-        //        $("#bowl-hint").css("visibility", "hidden");
-        //        bell.mute();
-        //    });
-        //    
-        //    bell.onring = function() {
-        //        $("#stop-sound").css("visibility", "visible");
-        //    }
-        //
-        //    bell.onend = function() {
-        //        $("#stop-sound").css("visibility", "hidden");
-        //    }
-        //
-        //    $("#stop-sound").click(function() {
-        //        bell.mute();
-        //    });
-        //
-        //    $("#bowl").click(function() {
-        //        bell.ring();
-        //    });
-        //
-        //    $("#bowl-wrap").hover(function() {
-        //        $("#bowl-hint").css("visibility", "visible");
-        //    },
-        //    function() {
-        //        $("#bowl-hint").css("visibility", "hidden");
-        //    });
-        //
-        //
-        //
-        //
-        //    var timer = new PhasedTimer([1000,1000,1000,1000]);
-        //
-        //    resetTimer(timer);
+    var app = new MeditationApp();
 });
