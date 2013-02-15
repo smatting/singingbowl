@@ -113,7 +113,7 @@ function MinutesModel(id, minutes) {
     this.minutes = minutes;
 
     this.save = function(val) {
-        var m = parseInt(val);
+        var m = parseFloat(val);
         if(!isNaN(m) && m >= 0) {
             this.minutes = m;
 
@@ -129,7 +129,7 @@ function MinutesModel(id, minutes) {
 
     this.load = function() {
         chrome.storage.local.get(this.id, function(obs) {
-            if(obs[that.id]) {
+            if(obs[that.id] != undefined) {
                 that.minutes = obs[that.id];
                 if(that.onchange)
                     that.onchange();
@@ -159,7 +159,7 @@ function MinutesView(model, el) {
     this.el = el;
 
     this.silenceText = $("<span>Silence for</span>");
-    this.input = $("<input type='text' size='3' maxlength='3'>");
+    this.input = $("<input type='text' size='3' maxlength='5'>");
     $(this.input).attr("id", $(this.el).attr("id") + "-input");
     $(this.input).hide();
 
@@ -272,7 +272,7 @@ function MeditationApp() {
     $("#timer-button").click(function() {
         if(that.mode == "config") {
             /* button is clicked to start timer */
-            timer.reset([preparationModel.minutes*60*1000,2*1000,meditationModel.minutes*60*1000,2*1000]);
+            timer.reset([Math.floor(preparationModel.minutes*60*1000),2*1000,Math.floor(meditationModel.minutes*60*1000),2*1000]);
             that.updateIndicators();
             that.setMode("indicator");
             $("#timer-button").html("Pause Timer");

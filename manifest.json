@@ -2,13 +2,14 @@
   "name": "Singing Bowl",
   "manifest_version": 2,
   "description": "A countdown timer suitable for meditating.",
-  "version": "1.2",
+  "version": "1.3",
   "app": {
     "launch": {
       "local_path": "main.html"
     }
   },
   "permissions": [ "storage" ],
+  "offline_enabled": true,
   "icons": {
     "16": "media/bowl_16.png",
     "48": "media/bowl_48.png",
