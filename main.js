@@ -1,5 +1,5 @@
 function Bell() {
-    var bellsound = new Audio("media/singingbowl.wav");
+    var bellsound = new Audio("media/singingbowl.m4a");
 
     var ringing = false;
 
@@ -21,7 +21,7 @@ function Bell() {
         if(this.onring)
             this.onring();
 
-        if(this.timeout) 
+        if(this.timeout)
             window.clearTimeout(this.timeout);
         var that = this;
         this.timeout = window.setTimeout(function() {that.mute()}, 14*1000);
@@ -65,7 +65,7 @@ function PhasedTimer(times) {
         this.timerHandle = window.setInterval(function() { that.tick() }, 100);
 
         this.lastTick = getTime();
-        
+
         if(this.isReset) {
             /* run is called first time after reset */
             this.ontransition(0);
